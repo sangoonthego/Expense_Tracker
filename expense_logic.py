@@ -11,8 +11,6 @@ class Expense:
         self.amount = float(amount)
 
 class ExpenseTracker:
-    """Manages a collection of expenses using a SQLite database."""
-    
     def __init__(self, db_path="expenses.db"):
         self.db_path = db_path
         # Allow the connection to be used across multiple threads
@@ -36,7 +34,6 @@ class ExpenseTracker:
         self.conn.commit()
 
     def _create_budgets_table(self):
-        """Creates the budgets table if it doesn't exist."""
         cursor = self.conn.cursor()
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS budgets (
@@ -47,7 +44,6 @@ class ExpenseTracker:
         self.conn.commit()
 
     def set_budget(self, year_month: str, amount: float):
-        """Sets or updates the budget for a given month (YYYY-MM)."""
         cursor = self.conn.cursor()
         # Use INSERT OR REPLACE to handle both new and existing budgets
         cursor.execute("""
@@ -56,14 +52,12 @@ class ExpenseTracker:
         self.conn.commit()
 
     def get_budget(self, year_month: str):
-        """Retrieves the budget for a given month (YYYY-MM)."""
         cursor = self.conn.cursor()
         cursor.execute("SELECT amount FROM budgets WHERE year_month = ?", (year_month,))
         row = cursor.fetchone()
         return row['amount'] if row else None
 
     def get_expense_by_id(self, expense_id: int):
-        """Retrieves a single expense from the database by its unique ID."""
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM expenses WHERE id = ?", (expense_id,))
         row = cursor.fetchone()
@@ -113,7 +107,6 @@ class ExpenseTracker:
         return cursor.fetchall() # Returns a list of row-like objects
 
     def get_summary_by_month(self):
-        """Calculates expense totals for the last 6 months."""
         cursor = self.conn.cursor()
         # Get the last 6 distinct months, then sum amounts for them
         cursor.execute("""
@@ -128,18 +121,7 @@ class ExpenseTracker:
         return cursor.fetchall()
 
     def search_expenses(self, search_term: str = None, start_date: str = None, end_date: str = None, category: str = None):
-        """
-        Search and filter expenses based on multiple criteria.
-        
-        Args:
-            search_term: Text to search in description (case-insensitive)
-            start_date: Start date in YYYY-MM-DD format
-            end_date: End date in YYYY-MM-DD format  
-            category: Category to filter by
-        """
         cursor = self.conn.cursor()
-        
-        # Build the query dynamically based on provided filters
         query = "SELECT * FROM expenses WHERE 1=1"
         params = []
         
@@ -166,7 +148,6 @@ class ExpenseTracker:
         return [Expense(**row) for row in rows]
 
     def get_categories(self):
-        """Get all unique categories from the database."""
         cursor = self.conn.cursor()
         cursor.execute("SELECT DISTINCT category FROM expenses ORDER BY category")
         return [row['category'] for row in cursor.fetchall()]
