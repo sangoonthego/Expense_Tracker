@@ -1,22 +1,19 @@
-/* Custom styles to reduce vertical spacing */
 main.container > h1 {
-    margin-bottom: 0.1rem; /* Adjust as needed */
+    margin-bottom: 0.1rem; 
 }
 h2 {
-    font-size: 1.25rem; /* Slightly smaller h2 */
-    margin-bottom: 0.75rem; /* Reduced bottom margin */
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
 }
 
-/* Give action buttons column enough space */
 .actions-cell {
-    min-width: 180px; /* Adjust if necessary */
-    white-space: nowrap; /* Prevent text wrapping in header */
+    min-width: 180px; 
+    white-space: nowrap; 
 }
 .actions-cell .grid {
     margin-bottom: 0;
 }
 
-/* Search and filter form styling */
 section form {
     margin-bottom: 2rem;
 }
