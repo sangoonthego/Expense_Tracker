@@ -2,20 +2,14 @@ from flask import Flask, render_template, request, redirect, url_for, json
 from expense_logic import ExpenseTracker
 from datetime import datetime
 
-# --- App Setup ---
 app = Flask(__name__)
-# Create one tracker instance for the entire application
 tracker = ExpenseTracker()
 
-# --- Pre-defined constants ---
 CURRENCY = "VND"
 CATEGORIES = ["Food", "Transport", "Entertainment", "Bills", "Shopping", "Other"]
 
-# --- Web Routes ---
-
 @app.route('/')
 def index():
-    """Main page, shows all expenses, charts, and the 'add' form."""
     # Get search/filter parameters from URL
     search_term = request.args.get('search', '').strip()
     start_date = request.args.get('start_date', '').strip()
@@ -35,21 +29,16 @@ def index():
 
     # Get available categories for filter dropdown
     available_categories = tracker.get_categories()
-
-    # --- Chart Data Calculation ---
-    # This logic now needs to be calculated based on the potentially filtered 'all_expenses' list
     
-    # Category Pie Chart data
     category_totals = {}
     for expense in all_expenses:
         category_totals[expense.category] = category_totals.get(expense.category, 0) + expense.amount
     category_labels = list(category_totals.keys())
     category_values = list(category_totals.values())
 
-    # Monthly Bar Chart data
     monthly_totals = {}
     for expense in all_expenses:
-        month = expense.date[:7]  # Get YYYY-MM part
+        month = expense.date[:7] 
         monthly_totals[month] = monthly_totals.get(month, 0) + expense.amount
     
     # Sort by month to ensure correct order
@@ -88,7 +77,6 @@ def index():
 
 @app.route('/set_budget', methods=['POST'])
 def set_budget():
-    """Handles setting the budget for the current month."""
     try:
         budget_amount = float(request.form['budget_amount'])
         if budget_amount >= 0:
@@ -101,7 +89,6 @@ def set_budget():
 
 @app.route('/add', methods=['POST'])
 def add_expense():
-    """Handles the form submission for adding a new expense."""
     category = request.form['category']
     description = request.form['description']
     try:
@@ -115,13 +102,11 @@ def add_expense():
 
 @app.route('/delete/<int:expense_id>')
 def delete_expense(expense_id):
-    """Deletes an expense by its ID."""
     tracker.delete_expense(expense_id)
     return redirect(url_for('index'))
 
 @app.route('/edit/<int:expense_id>', methods=['GET'])
 def edit_expense_page(expense_id):
-    """Shows a page to edit a single expense."""
     expense = tracker.get_expense_by_id(expense_id)
     if not expense:
         return "Expense not found", 404
@@ -135,12 +120,10 @@ def edit_expense_page(expense_id):
 
 @app.route('/update/<int:expense_id>', methods=['POST'])
 def update_expense(expense_id):
-    """Handles the form submission for updating an expense."""
     expense = tracker.get_expense_by_id(expense_id)
     if not expense:
         return "Expense not found", 404
 
-    # Update the object with form data
     expense.date = request.form['date']
     expense.category = request.form['category']
     expense.description = request.form['description']
@@ -149,6 +132,5 @@ def update_expense(expense_id):
     tracker.update_expense(expense)
     return redirect(url_for('index'))
 
-# --- Run the App ---
 if __name__ == '__main__':
     app.run(debug=True) 
