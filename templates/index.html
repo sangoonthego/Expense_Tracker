@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Include Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <main class="container">
+        <h1>Expense Tracker</h1>
+
+        <!-- Search and Filter Section -->
+        <section>
+            <h2>Search & Filter</h2>
+            <form method="get" action="{{ url_for('index') }}">
+                <div class="grid">
+                    <div>
+                        <label for="search">Search Description</label>
+                        <input type="text" id="search" name="search" value="{{ search_term }}" placeholder="e.g., coffee, lunch...">
+                    </div>
+                    <div>
+                        <label for="start_date">From Date</label>
+                        <input type="date" id="start_date" name="start_date" value="{{ start_date }}">
+                    </div>
+                    <div>
+                        <label for="end_date">To Date</label>
+                        <input type="date" id="end_date" name="end_date" value="{{ end_date }}">
+                    </div>
+                    <div>
+                        <label for="category">Category</label>
+                        <select id="category" name="category">
+                            <option value="">All Categories</option>
+                            {% for category in available_categories %}
+                                <option value="{{ category }}" {% if category == category_filter %}selected{% endif %}>
+                                    {{ category }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="grid">
+                    <button type="submit">Search</button>
+                    <button type="button" class="secondary" onclick="window.location.href='{{ url_for('index') }}'">Clear Filters</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- All Expenses Table - Moved up after search form -->
+        <section>
+            <h2>All Expenses</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th class="actions-cell">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for expense in expenses %}
+                    <tr>
+                        <td>{{ expense.category }}</td>
+                        <td>{{ expense.description }}</td>
+                        <td>{{ "%.0f"|format(expense.amount) }} {{ currency }}</td>
+                        <td>{{ expense.date }} at {{ expense.time }}</td>
+                        <td class="actions-cell">
+                            <div class="grid">
+                                <a href="{{ url_for('edit_expense_page', expense_id=expense.id) }}" role="button" class="secondary">Edit</a>
+                                <a href="{{ url_for('delete_expense', expense_id=expense.id) }}" role="button" class="contrast">Delete</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5">No expenses recorded yet. Start by adding one!</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <div class="grid">
+            <!-- Left side: Add Expense Form -->
+            <article>
+                <h2>Add New Expense</h2>
+                <form action="{{ url_for('add_expense') }}" method="post">
+                    <label for="category">Category</label>
+                    <select id="category" name="category" required>
+                        {% for category in categories %}
+                            <option value="{{ category }}">{{ category }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label for="description">Description</label>
+                    <input type="text" id="description" name="description" placeholder="e.g., Morning Coffee" required>
+
+                    <label for="amount">Amount ({{ currency }})</label>
+                    <input type="number" id="amount" name="amount" placeholder="e.g., 25000" step="1000" required>
+                    
+                    <button type="submit">Add Expense</button>
+                </form>
+            </article>
+
+            <!-- Right side: Budget Section -->
+            <article>
+                <h2>Budget for {{ current_month }}</h2>
+                {% if budget is not none %}
+                    {% set percentage = (total_spent / budget * 100) if budget > 0 else 0 %}
+                    <p>
+                        Spent <strong>{{ "%.0f"|format(total_spent) }}</strong> of 
+                        <strong>{{ "%.0f"|format(budget) }} {{ currency }}</strong>
+                    </p>
+                    <progress value="{{ total_spent }}" max="{{ budget }}"></progress>
+                    <p>{{ "%.1f"|format(percentage) }}% of budget used.</p>
+                {% else %}
+                    <p>No budget set for this month.</p>
+                {% endif %}
+                
+                <form action="{{ url_for('set_budget') }}" method="post" class="grid">
+                    <input type="number" name="budget_amount" placeholder="Set Monthly Budget" step="1000" required>
+                    <button type="submit">Set</button>
+                </form>
+            </article>
+        </div>
+
+        <!-- Charts Section -->
+        <section>
+            <div class="grid">
+                <article>
+                    <h3>By Category</h3>
+                    <canvas id="categoryPieChart" 
+                            data-labels='{{ category_labels|safe }}'
+                            data-values='{{ category_values|safe }}'
+                            data-currency='{{ currency }}'></canvas>
+                </article>
+                <article>
+                    <h3>Monthly Trend</h3>
+                    <canvas id="monthlyBarChart"
+                            data-labels='{{ monthly_labels|safe }}'
+                            data-values='{{ monthly_values|safe }}'
+                            data-currency='{{ currency }}'></canvas>
+                </article>
+            </div>
+        </section>
+
+    </main>
+
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+</body>
+</html> 
