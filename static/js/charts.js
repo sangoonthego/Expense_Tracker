@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // Calculate total for percentage calculations
     const totalExpenses = categoryValues.reduce((sum, value) => sum + value, 0);
 
-    // --- Category Pie Chart ---
     const categoryCtx = categoryCanvas.getContext('2d');
     if (categoryValues.length > 0) {
         new Chart(categoryCtx, {
@@ -75,7 +74,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- Monthly Bar Chart ---
     const monthlyCtx = monthlyCanvas.getContext('2d');
     if (monthlyValues.length > 0) {
         new Chart(monthlyCtx, {
